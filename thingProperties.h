@@ -9,17 +9,17 @@ const char SSID[]               = SECRET_SSID;    // Network SSID (name)
 const char PASS[]               = SECRET_OPTIONAL_PASS;    // Network password (use for WPA, or use as key for WEP)
 const char DEVICE_KEY[]  = SECRET_DEVICE_KEY;    // Secret device password
 
-void onDistanceChange();
+void onDistance1Change();
 
-float distance;
-bool isClose;
+float distance1;
+bool isClose1;
 
 void initProperties(){
 
   ArduinoCloud.setBoardId(DEVICE_LOGIN_NAME);
   ArduinoCloud.setSecretDeviceKey(DEVICE_KEY);
-  ArduinoCloud.addProperty(distance, READWRITE, ON_CHANGE, onDistanceChange);
-  ArduinoCloud.addProperty(isClose, READ, ON_CHANGE, NULL);
+  ArduinoCloud.addProperty(distance1, READWRITE, ON_CHANGE, onDistance1Change);
+  ArduinoCloud.addProperty(isClose1, READ, ON_CHANGE, NULL);
 
 }
 

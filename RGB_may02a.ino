@@ -1,19 +1,22 @@
 #include "arduino_secrets.h"
 #include "thingProperties.h"
 
-#define RED_PIN   25
-#define GREEN_PIN 26
-#define BLUE_PIN  27
-#define TRIG_PIN  18
-#define ECHO_PIN  19
+//first steup
+#define RED_PIN1   25
+#define GREEN_PIN1 26
+#define BLUE_PIN1  27
+#define TRIG_PIN1  18
+#define ECHO_PIN1  19
 
 void setup() {
-  pinMode(RED_PIN, OUTPUT);
-  pinMode(GREEN_PIN, OUTPUT);
-  pinMode(BLUE_PIN, OUTPUT);
 
-  pinMode(TRIG_PIN, OUTPUT);
-  pinMode(ECHO_PIN, INPUT);
+  //first setup
+  pinMode(RED_PIN1, OUTPUT);
+  pinMode(GREEN_PIN1, OUTPUT);
+  pinMode(BLUE_PIN1, OUTPUT);
+
+  pinMode(TRIG_PIN1, OUTPUT);
+  pinMode(ECHO_PIN1, INPUT);
 
   Serial.begin(9600);
   delay(1500);
@@ -27,57 +30,75 @@ void setup() {
 
 void loop() {
   ArduinoCloud.update();
-  readUltrasonicDistance();
-  onDistanceChange();
+  distance1 = measureDistance(TRIG_PIN1, ECHO_PIN1);
+  isClose1 = (distance1 <= 30.0);
+  onDistance1Change();
   delay(1000);
 }
 
-void readUltrasonicDistance() {
-  digitalWrite(TRIG_PIN, LOW);
+// Mesafe ölçme fonksiyonu
+float measureDistance(int trigPin, int echoPin) {
+  digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
-  digitalWrite(TRIG_PIN, HIGH);
+  digitalWrite(trigPin, HIGH);
   delayMicroseconds(10);
-  digitalWrite(TRIG_PIN, LOW);
+  digitalWrite(trigPin, LOW);
 
-  long duration = pulseIn(ECHO_PIN, HIGH);
-  float cm = duration * 0.034 / 2;
-
-  distance = cm;
-  isClose = (cm <= 30.0);
-
-  Serial.print("Mesafe: ");
-  Serial.print(cm);
-  Serial.println(" cm");
-
-  
+  long duration = pulseIn(echoPin, HIGH);
+  return duration * 0.034 / 2.0;
 }
 
 
 
-void onDistanceChange() {
+void onDistanceChange(bool close, int id) {
   uint8_t r, g, b;
 
-  if (distance<=30) {
-    
-
-    r = 255;  // Kırmızı
-    g = 0;
-    b = 0;
+  if (close) {
+    r = 255; g = 0; b = 0;  // Kırmızı
   } else {
-    
-
-    r = 0;  // Yeşil
-    g = 255;
-    b = 0;
+    r = 0; g = 255; b = 0;  // Yeşil
   }
 
+  int redPin, greenPin, bluePin;
 
-  // RGB LEDs
-  analogWrite(RED_PIN, r);
-  delay(10);
-  analogWrite(GREEN_PIN, g);
-  delay(10);
-  analogWrite(BLUE_PIN, b);
+  // ID'ye göre pin setini seç
+  switch (id) {
+    case 1:
+      redPin = RED_PIN1;
+      greenPin = GREEN_PIN1;
+      bluePin = BLUE_PIN1;
+      break;
+    case 2:
+      /* redPin = RED_PIN2;
+      greenPin = GREEN_PIN2;
+      bluePin = BLUE_PIN2;
+      break; */
+    case 3:
+      /* redPin = RED_PIN3;
+      greenPin = GREEN_PIN3;
+      bluePin = BLUE_PIN3;
+      break; */
+    default:
+      return; // Geçersiz id, hiçbir şey yapma
+  }
 
-  
+  // RGB LED'leri kontrol et
+  analogWrite(redPin, r);
+  delay(10);
+  analogWrite(greenPin, g);
+  delay(10);
+  analogWrite(bluePin, b);
+
+  // Debug
+  Serial.print("ID "); Serial.print(id);
+  Serial.print(" - R: "); Serial.print(r);
+  Serial.print(" G: "); Serial.print(g);
+  Serial.print(" B: "); Serial.println(b);
+}
+/*
+  Since Distance1 is READ_WRITE variable, onDistance1Change() is
+  executed every time a new value is received from IoT Cloud.
+*/
+void onDistance1Change() {
+  onDistanceChange(isClose1, 1);
 }
