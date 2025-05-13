@@ -10,16 +10,29 @@ const char PASS[]               = SECRET_OPTIONAL_PASS;    // Network password (
 const char DEVICE_KEY[]  = SECRET_DEVICE_KEY;    // Secret device password
 
 void onDistance1Change();
+void onDistance2Change();
+void onDistance3Change();
+void onCarOutChange();
 
 float distance1;
+float distance2;
+float distance3;
+bool carOut;
 bool isClose1;
+bool isClose2;
+bool isClose3;
 
 void initProperties(){
 
   ArduinoCloud.setBoardId(DEVICE_LOGIN_NAME);
   ArduinoCloud.setSecretDeviceKey(DEVICE_KEY);
   ArduinoCloud.addProperty(distance1, READWRITE, ON_CHANGE, onDistance1Change);
+  ArduinoCloud.addProperty(distance2, READWRITE, ON_CHANGE, onDistance2Change);
+  ArduinoCloud.addProperty(distance3, READWRITE, ON_CHANGE, onDistance3Change);
+  ArduinoCloud.addProperty(carOut, READWRITE, ON_CHANGE, onCarOutChange);
   ArduinoCloud.addProperty(isClose1, READ, ON_CHANGE, NULL);
+  ArduinoCloud.addProperty(isClose2, READ, ON_CHANGE, NULL);
+  ArduinoCloud.addProperty(isClose3, READ, ON_CHANGE, NULL);
 
 }
 
