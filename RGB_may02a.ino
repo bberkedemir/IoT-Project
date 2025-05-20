@@ -1,16 +1,18 @@
 #include "arduino_secrets.h"
 #include "thingProperties.h"
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SH110X.h> 
 
 
 #define RED_PIN1   25
 #define GREEN_PIN1 26
-//#define BLUE_PIN1  27
 
 #define RED_PIN2   32
 #define GREEN_PIN2 33
 
-#define RED_PIN3   22
-#define GREEN_PIN3 23
+#define RED_PIN3   13 
+#define GREEN_PIN3 14 
 
 #define TRIG_PIN1  18
 #define ECHO_PIN1  19
@@ -21,7 +23,19 @@
 #define TRIG_PIN3  4
 #define ECHO_PIN3  5
 
-#define BUZZER_PIN 21
+#define BUZZER_PIN 27 
+
+#define OLED_SDA  21   
+#define OLED_SCL  22   
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET -1
+
+Adafruit_SH1106G display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+int previousIsClose1 = false;
+int previousIsClose2 = false;
+int previousIsClose3 = false;
 
 void setup() {
 
@@ -48,8 +62,13 @@ void setup() {
   pinMode(BUZZER_PIN, OUTPUT);
   digitalWrite(BUZZER_PIN, HIGH);
 
-  Serial.begin(9600);
-  delay(1500);
+  // OLED başlat
+  Wire.begin(OLED_SDA, OLED_SCL);
+  if (!display.begin(0x3C)) {
+    Serial.println(F("OLED başlatılamadı"));
+    while(1);
+  }
+  display.clearDisplay();
 
   initProperties();
   ArduinoCloud.begin(ArduinoIoTPreferredConnection);
@@ -67,9 +86,39 @@ void loop() {
   isClose1 = (distance1 <= 10.0);
   isClose2 = (distance2 <= 10.0);
   isClose3 = (distance3 <= 10.0);
+  // Araç girişi kontrolü ve sayaç arttırma
+  if (!previousIsClose1 && isClose1) {
+    entryCount1++;
+    Serial.println("Park yeri 1: Giriş sayısı arttı");
+  }
+  if (!previousIsClose2 && isClose2) {
+    entryCount2++;
+    Serial.println("Park yeri 2: Giriş sayısı arttı");
+  }
+  if (!previousIsClose3 && isClose3) {
+    entryCount3++;
+    Serial.println("Park yeri 3: Giriş sayısı arttı");
+  }
+
+  previousIsClose1 = isClose1;
+  previousIsClose2 = isClose2;
+  previousIsClose3 = isClose3;
   onDistance1Change();
   onDistance2Change();
   onDistance3Change();
+
+  // OLED güncelle
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setTextColor(SH110X_WHITE);
+  display.setCursor(0, 0);
+  display.print("C1: ");
+  display.println(isClose1 ? "Dolu" : "Bos");
+  display.print("C2: ");
+  display.println(isClose2 ? "Dolu" : "Bos");
+  display.print("C3: ");
+  display.println(isClose3 ? "Dolu" : "Bos");
+  display.display();
   
 
   // Buzzer için
@@ -89,7 +138,9 @@ void loop() {
 
   previousAllOccupied = currentAllOccupied;  // Önceki durumu güncelle
 
-  delay(1000);
+  
+
+  delay(500);
 }
 
 // Mesafe ölçme fonksiyonu
@@ -194,4 +245,29 @@ void onCarOutChange()  {
   delay(100);  // 1 saniye bekle
   digitalWrite(BUZZER_PIN, HIGH);  // Buzzer'ı aç
   delay(100);  // 1 saniye boyunca buzzer'ı çaldır
+}
+
+
+
+
+/*
+  Since EntryCount1 is READ_WRITE variable, onEntryCount1Change() is
+  executed every time a new value is received from IoT Cloud.
+*/
+void onEntryCount1Change()  {
+  // Add your code here to act upon EntryCount1 change
+}
+/*
+  Since EntryCount2 is READ_WRITE variable, onEntryCount2Change() is
+  executed every time a new value is received from IoT Cloud.
+*/
+void onEntryCount2Change()  {
+  // Add your code here to act upon EntryCount2 change
+}
+/*
+  Since EntryCount3 is READ_WRITE variable, onEntryCount3Change() is
+  executed every time a new value is received from IoT Cloud.
+*/
+void onEntryCount3Change()  {
+  // Add your code here to act upon EntryCount3 change
 }
